@@ -1,6 +1,6 @@
 # Allowed address pair Extension
 
-This extension verifies that your OpenStack supports virtual IP address failover with allowed address allowed address pairs
+This extension verifies that your OpenStack supports virtual IP address failover with allowed address pairs
 
 https://blog.codecentric.de/en/2016/11/highly-available-vips-openstack-vms-vrrp/
 

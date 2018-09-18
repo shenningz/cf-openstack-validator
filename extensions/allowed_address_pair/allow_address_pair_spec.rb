@@ -127,7 +127,8 @@ fdescribe 'test virtual IP failover with allowed address pairs: ' do
     expect(status.exitstatus).to eq(0),
     error_message("SSH connection to VM via virtual IP '#{@floating_ip_vip}' didn't succeed.", command, err, output)
 
-    # check if this was really executed on slave VM
+    # check if this was really executed on slave VM by comparing SMBIOS UUID == OpenStack VM ID
+    output=output.downcase
     error = "Failover of VIP to slave VM via virtual IP #{@floating_ip_vip} failed. Expected VM ID #{master_vm_cid} not equal to actual ID #{output}"
     expect("#{output}".casecmp("#{master_vm_cid}\n")).to eq(0), error
 
@@ -155,7 +156,8 @@ fdescribe 'test virtual IP failover with allowed address pairs: ' do
     expect(status.exitstatus).to eq(0),
     error_message("SSH connection to slave VM via virtual IP '#{@floating_ip_vip}' didn't succeed.", command, err, output)
 
-    # check if this was really executed on slave VM
+    # check if this was really executed on slave VM by comparing SMBIOS UUID == OpenStack VM ID
+    output=output.downcase
     error = "Failover of VIP to slave VM via virtual IP #{@floating_ip_vip} failed. Expected VM ID #{slave_vm_cid} not equal to actual ID #{output}"
     expect("#{output}".casecmp("#{slave_vm_cid}\n")).to eq(0), error
   end

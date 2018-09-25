@@ -59,10 +59,11 @@ module Validator
     def self.keystone_v2_converters
       {
         'auth_url' => ->(key, value) {
-          if value.end_with?('/tokens')
-            [key, value]
+          if value.match(/\/v2.0(?=\/|$)/)
+            url_without_version = value.slice(0..(value.index(/\/v2.0(?=\/|$)/)))
+            [key, remove_url_trailing_slash(url_without_version)]
           else
-            [key, "#{value}/tokens"]
+            [key, remove_url_trailing_slash(value)]
           end
         },
         'domain' => ->(key, value) {
@@ -77,15 +78,16 @@ module Validator
     def self.keystone_v3_converters
       {
         'auth_url' => ->(key, value) {
-          if value.end_with?('/auth/tokens')
-            [key, value]
+          if value.match(/\/v3(?=\/|$)/)
+            url_without_version = value.slice(0..(value.index(/\/v3(?=\/|$)/)))
+            [key, remove_url_trailing_slash(url_without_version)]
           else
-            [key, "#{value}/auth/tokens"]
+            [key, remove_url_trailing_slash(value)]
           end
         },
         'tenant' => ->(key, value) {
           nil
-        },
+        }
       }.merge(base_converters)
     end
 
@@ -109,6 +111,10 @@ module Validator
 
     def self.is_v2(auth_url)
       auth_url.match(/\/v2.0(?=\/|$)/)
+    end
+
+    def self.remove_url_trailing_slash(url)
+      url.end_with?('/') ? url[0..-2] : url
     end
 
     private_class_method :apply_converters

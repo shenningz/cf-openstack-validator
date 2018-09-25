@@ -49,20 +49,40 @@ describe Validator::Converter do
         end
 
         context "when 'auth_url' does not end with '/auth/tokens'" do
-          it "appends 'auth/tokens' to 'auth_url' parameter" do
+          it "does not append '/auth/tokens' to 'auth_url' parameter and removes version" do
             rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 
-            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
+            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url'
+          end
+
+          context "when 'auth_url' does not end with 'v3'" do
+            let(:auth_url) { 'https://auth.url/identity' }
+
+            it "does not append '/v3/auth/tokens' to 'auth_url' parameter" do
+              rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
+
+              expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/identity'
+            end
+          end
+        end
+
+        context "when 'auth_url' ends with trailing slash" do
+          let(:auth_url) { 'https://auth.url/v3/' }
+
+          it "does not append 'auth/tokens' to 'auth_url' parameter and removes version" do
+            rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
+
+            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url'
           end
         end
 
         context "when auth_url ends with '/auth/tokens'" do
           let(:auth_url) { 'https://auth.url/v3/auth/tokens' }
 
-          it "use 'auth_url' parameter as given" do
+          it "removes everything beginning from the version in 'auth_url' parameter" do
             rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 
-            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
+            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url'
           end
         end
       end
@@ -94,18 +114,20 @@ describe Validator::Converter do
         end
 
         context "when auth_url ends with '/tokens'" do
-          it "uses 'auth_url' parameter as given" do
+          it "removes everything beginning from the version in 'auth_url' parameter" do
             rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 
-            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/identity/v2.0/tokens'
+            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/identity'
           end
         end
 
         context 'but the URL does not end in /tokens' do
-          it "appends 'auth/tokens' to 'auth_url' parameter" do
+          let(:auth_url) { 'https://auth.url/identity/v2.0/' }
+
+          it "does not append 'auth/tokens' to 'auth_url' parameter and removes the version" do
             rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 
-            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/identity/v2.0/tokens'
+            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/identity'
           end
         end
       end

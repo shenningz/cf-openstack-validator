@@ -74,9 +74,7 @@ fdescribe 'test virtual IP failover with allowed address pairs: ' do
     master_server_nics = @network.list_ports('device_id' => @master_vm_cid).data[:body]['ports']
     master_port = (master_server_nics.select do |network_port| network_port['mac_address'] end).first
     # add virtual FIP as allowed address to master VM port
-    @network.update_port(master_port['id'], :name => "aap_master", :port_security_enabled => true)
-    sleep 2
-    @network.update_port(master_port['id'], :allowed_address_pairs => [{:ip_address => @fixed_ip}])
+    @network.update_port(master_port['id'], :name => "aap_master", :port_security_enabled => true, :allowed_address_pairs => [{:ip_address => @fixed_ip}])
   end
 
 
@@ -105,9 +103,7 @@ fdescribe 'test virtual IP failover with allowed address pairs: ' do
     slave_server_nics = @network.list_ports('device_id' => @slave_vm_cid).data[:body]['ports']
     slave_port = (slave_server_nics.select do |network_port| network_port['mac_address'] end).first
     # add virtual FIP as allowed address to slave VM port
-    @network.update_port(slave_port['id'], :name => "aap_slave", :port_security_enabled => true)
-    sleep 2
-    @network.update_port(slave_port['id'], :allowed_address_pairs => [{:ip_address => @fixed_ip}])
+    @network.update_port(slave_port['id'], :name => "aap_slave", :port_security_enabled => true, :allowed_address_pairs => [{:ip_address => @fixed_ip}])
     # associate a FIP to slave VM so that it can be reached externally
     floating_ip_id = @network.list_floating_ips('floating_ip_address' => @floating_ip_slave).data[:body]['floatingips'].first['id']
     @network.associate_floating_ip(floating_ip_id, slave_port['id'])

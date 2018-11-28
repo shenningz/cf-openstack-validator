@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -x
+set -ex
 export TERM=xterm-256color
 
 URL=$(cat ./bosh-openstack-cpi-release/url)

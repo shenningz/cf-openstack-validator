@@ -1,25 +1,36 @@
 #!/usr/bin/env bash
 
-set -e
+set -euxo pipefail
 
 source validator-src-in/ci/tasks/utils.sh
 
 init_openstack_cli_env
 
+if [[ $(openstack role list 2>&1) != *"HTTP 403"* ]]; then
+  echo "Exiting the script, since it might be executed with admin rights!"
+  exit 1
+fi
+
 OPENSTACK_PROJECT_ID=$(openstack project list --format json | jq --raw-output --arg project $BOSH_OPENSTACK_PROJECT '.[] | select(.Name == $project) | .ID')
+if [ -z "$OPENSTACK_PROJECT_ID" ]; then
+  echo "Error: Failed to get OpenStack project"
+  exit 1
+fi
 
 exit_code=0
 
 openstack_delete_entities() {
-  local entity=$1
-  local list_args=$2
-  local delete_args=$3
+  local entity=${1:-}
+  local list_args=${2:-}
+  local delete_args=${3:-}
   id_list=$(openstack $entity list $list_args --format json | jq --raw-output '.[].ID')
   echo "Received list of all ${entity}s: ${id_list}"
   for id in $id_list
   do
     echo "Deleting $entity $id ..."
+    set +o pipefail
     openstack $entity delete $delete_args $id || exit_code=$?
+    set -o pipefail
   done
 }
 
@@ -31,13 +42,16 @@ openstack_delete_ports() {
   # 'network:floatingip', 'network:router_gateway',
   # 'network:dhcp', 'network:router_interface',
   # 'network:ha_router_replicated_interface',
+  # 'network:router_interface_distributed',
   # 'neutron:LOADBALANCERV2' and 'network:f5lbaasv2'
   # Maybe we could just filter for 'network:'?
-    port_to_be_deleted=`neutron port-show --format json $port | jq --raw-output '. | select(.device_owner | contains("network:floatingip") or contains("network:router_gateway") or contains("network:dhcp") or contains("network:router_interface") or contains("network:ha_router_replicated_interface") or contains("neutron:LOADBALANCERV2") or contains("network:f5lbaasv2") or contains("network:router_centralized_snat") | not ) | .id'`
+    port_to_be_deleted=`openstack port show --format json $port | jq --raw-output '. | select(.device_owner | contains("network:floatingip") or contains("network:router_gateway") or contains("network:dhcp") or contains("network:router_interface") or contains("network:ha_router_replicated_interface") or contains("neutron:LOADBALANCERV2") or contains("network:f5lbaasv2") or contains("network:router_centralized_snat") or contains("network:router_interface_distributed") | not ) | .id'`
     if [ ! -z ${port_to_be_deleted} ];
     then
       echo "Deleting port ${port_to_be_deleted}"
+      set +o pipefail
       openstack port delete ${port_to_be_deleted} || exit_code=$?
+      set -o pipefail
     fi
   done
 }
@@ -58,9 +72,9 @@ openstack_delete_entities "volume"
 echo "Deleting ports #########################"
 openstack_delete_ports
 
-if [ -d "$tmpdir" ]; then
+if [ -d "${tmpdir:-}" ]; then
     echo "Deleting temp dir with cacert.pem"
-    rm -rf "$tmpdir"
+    rm -rf "${tmpdir}"
 fi
 
 exit ${exit_code}

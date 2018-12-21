@@ -19,6 +19,6 @@ Add the extension to your `validator.yml`:
 extensions:
   paths: [./extensions/allowed_address_pair]
   config:
-    allowed_address_pair
-     expected_infrastructure: </absolute/path/to/allowed_address_pair.yml>
+    allowed_address_pair:
+      allowed_address_pair: </absolute/path/to/allowed_address_pair.yml>
 ```

@@ -29,5 +29,3 @@ RUN useradd -ms /bin/bash -G sudo validator-ci
 RUN echo "%sudo ALL = NOPASSWD: ALL" >> /etc/sudoers.d/sudo_group
 
 USER validator-ci
-
-RUN wget -O ~/stemcell.tgz https://d26ekeud912fhb.cloudfront.net/bosh-stemcell/openstack/bosh-stemcell-3262.9-openstack-kvm-ubuntu-trusty-go_agent.tgz

@@ -10,14 +10,14 @@ describe 'Auto-anti-affinity' do
     Validator::Api::FogOpenStack.compute.get_quota(project_id).body['quota_set']
   end
 
-  it 'quota is unlimited for server groups' do
+  it 'quota is >=1 for server groups' do
     quota_server_groups = compute_quota['server_groups']
-    expect(quota_server_groups).to eq(-1), "Quota for server_groups should be '-1' but is '#{quota_server_groups}'"
+    expect(quota_server_groups).to be >=1, "Quota for server_groups should be >=1 but is '#{quota_server_groups}'"
   end
 
-  it 'quota is unlimited for server group members' do
+  it 'quota is >=1 for server group members' do
     quota_members = compute_quota['server_group_members']
-    expect(quota_members).to eq(-1), "Quota for server_groups should be '-1' but is '#{quota_members}'"
+    expect(quota_members).to be >= 1, "Quota for server_groups should be >=1 but is '#{quota_members}'"
   end
 
   it "can create a server group with 'soft-anti-affinity'", cpi_api: true do
